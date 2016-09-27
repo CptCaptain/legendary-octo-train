@@ -2,8 +2,6 @@ import os
 import time
 import requests
 import json
-#import request
-#import kwargs
 import urllib.request
 from slackclient import SlackClient
 
@@ -21,7 +19,7 @@ slack_client = SlackClient(SLACK_BOT_TOKEN)
 if __name__ == "__main__":
         api_call = slack_client.api_call("users.list")
         if api_call.get('ok'):
-                # retrieve all usres so we can find our bot
+                # retrieve all users so we can find our bot
                 users = api_call.get('members')
                 for user in users:
                         if 'name' in user and user.get('name') == BOT_NAME:
@@ -32,15 +30,26 @@ if __name__ == "__main__":
 AT_BOT="<@" + BOT_ID +">"
 EXAMPLE_COMMAND = "tu"
 PRIME = "prim"
-WETTER = "a"
-CLOCK = "w"
-
+WETTER = "wetter"
+CLOCK = "uhr"
+CITY = "Wiesbaden"
+client = SlackClient(SLACK_BOT_TOKEN)
 #Funktionen zum parsen von Slack output und den handle commands und so
 def handle_command(command, channel):
 	"""
 		Empfängt Befehle für den Bot und ermittelt, ob sie valide sind, den rest kannst du dir wahrscheinlich denken
 	"""
 	response="Wat meinste? Nimm den  *" + EXAMPLE_COMMAND + "* Befehl, du Spasti"
+#	if client.rtm_connect():
+#		last_read = client.rtm_read()
+#		if last_read:
+#			try:
+#				parsed = last_read
+#				if parsed and 'berlin' in parsed:
+#					CITY="Berlin"
+#				print(parsed)
+#			except:
+#				pass
 	if command.startswith(EXAMPLE_COMMAND):
 		response="Alles klar, da fehlt aber noch ein bissl code, meinste nicht auch?"
 		slack_client.api_call("chat.postMessage", channel=channel,
@@ -48,33 +57,38 @@ def handle_command(command, channel):
 	if command.startswith(PRIME):
 		i=1
 		while i<50:
-			#
 			slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 			i=i+2
 	if command.startswith(WETTER):
+		CITY=command.replace(WETTER,"").replace(" ","")
+		print(CITY)
 		#Wetterversuch, mal schauen was drauss wirt
 		openweather_api='442c26ca8ed7eec9212e6beb25720d27'
-		#weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=wiesbaden,de&APPID=' + openweather_api)
-		weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=wiesbaden,de&APPID=442c26ca8ed7eec9212e6beb25720d27')
-		line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=london,uk&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
+		weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=' + ',de&APPID=442c26ca8ed7eec9212e6beb25720d27')
+		line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=' + CITY +',de&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
 		jdata=json.loads(line.decode('utf-8'))
+		#das sollte eigentlich einen fehler darstellen, falls openweathermaps
+		#nicht drauf klar kommt, aber iwie läufts nicht so gut
 		if 'Error:Not found city' in jdata:
 			print('WetterFehler')
 			slack_client.api_call("chat.postMessage", channel=channel, text='Fehler, Stadt nicht gefunden!', as_user=True)
 		else:
-			Main=jdata["list"][0]["weather"]
-			Weather=Main[0]["description"]
+			#hier werden die einzelnen dinge die einen interessieren aus dem
+			#riesigen json extrahiert, und im anschluss dargestellt.
+			Main_Weather=jdata["list"][0]["weather"]
+			Weather=Main_Weather[0]["description"]
 			Wind=jdata["list"][0]["wind"]
 			Speed=Wind["speed"]
 			Angle=Wind["deg"]
-			Temp=jdata["list"][0]["rain"]
+			Main_Temp=jdata["list"][0]["main"]
+			Temp=Main_Temp["temp"]
+			Temp_C=int(Temp)-275.13
 			Pressure=jdata["list"][0]["clouds"]
-			i=('There\'s ' + str(Weather) + ' with a windspeed of ' + str(Speed) + 'km/h from ' + str(Angle) + '°N.')
+			i=('In ' + str(CITY)+ ', there\'s ' + str(Weather) + ' at ' + str(Temp) + 'K (' + str(Temp_C) + '°C) with a windspeed of ' + str(Speed) + 'km/h coming from ' + str(Angle) + '°N.')
 			print('Wetter')
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 	if command.startswith(CLOCK):
 		i=time.strftime("It's %A, the %d of %B %Y, %H:%M:%S ", time.localtime())
-		#i=t(4) + (':')+ t(5)
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 		print('Uhrzeit')
 def parse_slack_output(slack_rtm_output):
@@ -101,6 +115,6 @@ if __name__=="__main__":
 				handle_command(command, channel)
 			time.sleep(READ_WEBSOCKET_DELAY)
 	else:
-		print("Verbindung fehlgeschlage, da stimmt am end was mit dem TOKEN oder der ID nicht :(")
+		print("Verbindung fehlgeschlagen, da stimmt am end was mit dem TOKEN oder der ID nicht :(")
 
 
