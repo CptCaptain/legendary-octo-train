@@ -59,35 +59,37 @@ def handle_command(command, channel):
 		while i<50:
 			slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 			i=i+2
-	if command.startswith(WETTER):
-		CITY=command.replace(WETTER,"").replace(" ","")
-		print(CITY)
+	if WETTER in command:
 		#Wetterversuch, mal schauen was drauss wirt
 		openweather_api='442c26ca8ed7eec9212e6beb25720d27'
-		weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=' + ',de&APPID=442c26ca8ed7eec9212e6beb25720d27')
-		line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=' + CITY +',de&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
-		jdata=json.loads(line.decode('utf-8'))
-		#das sollte eigentlich einen fehler darstellen, falls openweathermaps
-		#nicht drauf klar kommt, aber iwie läufts nicht so gut
-		if 'Error:Not found city' in jdata:
-			print('WetterFehler')
-			slack_client.api_call("chat.postMessage", channel=channel, text='Fehler, Stadt nicht gefunden!', as_user=True)
-		else:
-			#hier werden die einzelnen dinge die einen interessieren aus dem
-			#riesigen json extrahiert, und im anschluss dargestellt.
-			Main_Weather=jdata["list"][0]["weather"]
-			Weather=Main_Weather[0]["description"]
-			Wind=jdata["list"][0]["wind"]
-			Speed=Wind["speed"]
-			Angle=Wind["deg"]
-			Main_Temp=jdata["list"][0]["main"]
-			Temp=Main_Temp["temp"]
-			Temp_C=int(Temp)-275.13
-			Pressure=jdata["list"][0]["clouds"]
-			i=('In ' + str(CITY)+ ', there\'s ' + str(Weather) + ' at ' + str(Temp) + 'K (' + str(Temp_C) + '°C) with a windspeed of ' + str(Speed) + 'km/h coming from ' + str(Angle) + '°N.')
-			print('Wetter')
-		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
-	if command.startswith(CLOCK):
+		print(command)
+		split=command.split()
+		for x in split:
+			CITY=x
+			if CITY=='wetter':
+				print('wetter, aber das bleibt unter uns ;)')
+			else:
+				print(CITY)
+				line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=' + CITY +',de&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
+				jdata=json.loads(line.decode('utf-8'))
+				if 'error' in jdata:
+					print('FEHLER! FEHLER! FEHLER!')
+				else:
+					#hier werden die einzelnen dinge die einen interessieren aus dem
+					#riesigen json extrahiert, und im anschluss dargestellt.
+					Main_Weather=jdata["list"][0]["weather"]
+					Weather=Main_Weather[0]["description"]
+					Wind=jdata["list"][0]["wind"]
+					Speed=Wind["speed"]
+					Angle=Wind["deg"]
+					Main_Temp=jdata["list"][0]["main"]
+					Temp=Main_Temp["temp"]
+					Temp_C=int(Temp)-275.13
+					Pressure=jdata["list"][0]["clouds"]
+					i=('In ' + str.capitalize(CITY)+ ', there\'s ' + str(Weather) + ' at ' + str(Temp) + 'K (' + str(Temp_C) + '°C) with a windspeed of ' + str(Speed) + 'km/h coming from ' + str(Angle) + '°N.')
+					print('Wetter')
+				slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
+	if CLOCK in command:
 		i=time.strftime("It's %A, the %d of %B %Y, %H:%M:%S ", time.localtime())
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 		print('Uhrzeit')
