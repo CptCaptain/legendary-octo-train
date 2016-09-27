@@ -7,17 +7,33 @@ import requests
 #import urllib.request
 from slackclient import SlackClient
 
-# Slackbot ID aus der Umgebungsvariable auslesen
-BOT_ID=os.environ.get("BOT_ID")
+
+#Lookup für Bot ID und so
+
+BOT_NAME= 'servitor'
+
+SLACK_BOT_TOKEN = 'xoxb-84060539537-L948qpYUX7oViAU6otzhnNmr'
+
+
+#instanziiere Slack
+slack_client = SlackClient(SLACK_BOT_TOKEN)
+
+if __name__ == "__main__":
+        api_call = slack_client.api_call("users.list")
+        if api_call.get('ok'):
+                # retrieve all usres so we can find our bot
+                users = api_call.get('members')
+                for user in users:
+                        if 'name' in user and user.get('name') == BOT_NAME:
+                                BOT_ID=user.get('id')
+                                print("Die Bot ID für '" + user['name'] + "' ist " + user.get('id'))
 
 #constants
-AT_BOT="<@:" + BOT_ID +">"
+AT_BOT="<@" + BOT_ID +">"
 EXAMPLE_COMMAND = "tu"
 PRIME = "prim"
 WETTER = "a"
-#instanziiere Slack und Twilio (was auch immer das sein mag)
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
-
+CLOCK = "w"
 
 #Funktionen zum parsen von Slack output und den handle commands und so
 def handle_command(command, channel):
@@ -47,9 +63,13 @@ def handle_command(command, channel):
 		#Pressure=wjdata['pressure']
 		#Wind=wjdata['wind']
 		#i=('In ' + Location + ' hat es ' + Temp + 'Grad, bei ' + Pressure + ' bar und ' + Wind)
+		print('Wetter')
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
-
-
+	if command.startswith(CLOCK):
+		i=time.strftime("It's %A, the %d of %B %Y, %H:%M:%S ", time.localtime())
+		#i=t(4) + (':')+ t(5)
+		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
+		print('Uhrzeit')
 def parse_slack_output(slack_rtm_output):
 	"""
 		Die Slack Real Time Messaging API ist ein wahrer Feuerwehrschlauch der Ereignisse, diese Parsing Funktion  antwortet nur, wenn die Nachricht an den BOT gewandt ist, in Abhängigkeit von seiner ID
