@@ -1,10 +1,10 @@
 import os
 import time
 import requests
-#import json
-#import pprint
+import json
+#import request
 #import kwargs
-#import urllib.request
+import urllib.request
 from slackclient import SlackClient
 
 
@@ -56,14 +56,18 @@ def handle_command(command, channel):
 		openweather_api='442c26ca8ed7eec9212e6beb25720d27'
 		#weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=wiesbaden,de&APPID=' + openweather_api)
 		weather = requests.get('http://api.openweathermap.org/data/2.5/forecast/city?q=wiesbaden,de&APPID=442c26ca8ed7eec9212e6beb25720d27')
-		wjdata = weather.json()
-		i=wjdata['list']
-		#Location=wjdata['message']
-		#Temp=wjdata['temp_max']
-		#Pressure=wjdata['pressure']
-		#Wind=wjdata['wind']
-		#i=('In ' + Location + ' hat es ' + Temp + 'Grad, bei ' + Pressure + ' bar und ' + Wind)
-		print('Wetter')
+		line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=london,uk&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
+		jdata=json.loads(line.decode('utf-8'))
+		if 'Error:Not found city' in jdata:
+			print('WetterFehler')
+			slack_client.api_call("chat.postMessage", channel=channel, text='Fehler, Stadt nicht gefunden!', as_user=True)
+		else:
+			Main=jdata["list"][0]["main"]
+			Wind=jdata["list"][0]["wind"]
+			Temp=jdata["list"][0]["rain"]
+			Pressure=jdata["list"][0]["clouds"]
+			i=('In ' + str(Main) + ' hat es ' + str(Temp) + 'Grad, bei ' + str(Pressure) + ' bar und ' + str(Wind))
+			print('Wetter')
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 	if command.startswith(CLOCK):
 		i=time.strftime("It's %A, the %d of %B %Y, %H:%M:%S ", time.localtime())
