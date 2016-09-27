@@ -8,9 +8,9 @@ from slackclient import SlackClient
 
 #Lookup für Bot ID und so
 
-BOT_NAME= 'servitor'
+BOT_NAME = 'servitor'
 
-SLACK_BOT_TOKEN = 'xoxb-84060539537-L948qpYUX7oViAU6otzhnNmr'
+SLACK_BOT_TOKEN = 'xoxb-84060539537-LN1LdmtOgdAJUYOx5hwtsO48'
 
 
 #instanziiere Slack
@@ -27,9 +27,8 @@ if __name__ == "__main__":
                                 print("Die Bot ID für '" + user['name'] + "' ist " + user.get('id'))
 
 #constants
-AT_BOT="<@" + BOT_ID +">"
+AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "tu"
-PRIME = "prim"
 WETTER = "wetter"
 CLOCK = "uhr"
 CITY = "Wiesbaden"
@@ -40,36 +39,23 @@ def handle_command(command, channel):
 		Empfängt Befehle für den Bot und ermittelt, ob sie valide sind, den rest kannst du dir wahrscheinlich denken
 	"""
 	response="Wat meinste? Nimm den  *" + EXAMPLE_COMMAND + "* Befehl, du Spasti"
-#	if client.rtm_connect():
-#		last_read = client.rtm_read()
-#		if last_read:
-#			try:
-#				parsed = last_read
-#				if parsed and 'berlin' in parsed:
-#					CITY="Berlin"
-#				print(parsed)
-#			except:
-#				pass
 	if command.startswith(EXAMPLE_COMMAND):
 		response="Alles klar, da fehlt aber noch ein bissl code, meinste nicht auch?"
 		slack_client.api_call("chat.postMessage", channel=channel,
 				text=response, as_user=True)
-	if command.startswith(PRIME):
-		i=1
-		while i<50:
-			slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
-			i=i+2
 	if WETTER in command:
 		#Wetterversuch, mal schauen was drauss wirt
 		openweather_api='442c26ca8ed7eec9212e6beb25720d27'
 		print(command)
+		#teile den input in die einzelnen worte
 		split=command.split()
 		for x in split:
 			CITY=x
+			#strip wetter
 			if CITY=='wetter':
 				print('wetter, aber das bleibt unter uns ;)')
 			else:
-				print(CITY)
+				print('Wetter für ' + CITY)
 				line=urllib.request.urlopen('http://api.openweathermap.org/data/2.5/forecast/city?q=' + CITY +',de&APPID=442c26ca8ed7eec9212e6beb25720d27').read()
 				jdata=json.loads(line.decode('utf-8'))
 				if 'error' in jdata:
@@ -87,7 +73,6 @@ def handle_command(command, channel):
 					Temp_C=int(Temp)-275.13
 					Pressure=jdata["list"][0]["clouds"]
 					i=('In ' + str.capitalize(CITY)+ ', there\'s ' + str(Weather) + ' at ' + str(Temp) + 'K (' + str(Temp_C) + '°C) with a windspeed of ' + str(Speed) + 'km/h coming from ' + str(Angle) + '°N.')
-					print('Wetter')
 				slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 	if CLOCK in command:
 		i=time.strftime("It's %A, the %d of %B %Y, %H:%M:%S ", time.localtime())
