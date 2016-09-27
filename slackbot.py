@@ -62,11 +62,14 @@ def handle_command(command, channel):
 			print('WetterFehler')
 			slack_client.api_call("chat.postMessage", channel=channel, text='Fehler, Stadt nicht gefunden!', as_user=True)
 		else:
-			Main=jdata["list"][0]["main"]
+			Main=jdata["list"][0]["weather"]
+			Weather=Main[0]["description"]
 			Wind=jdata["list"][0]["wind"]
+			Speed=Wind["speed"]
+			Angle=Wind["deg"]
 			Temp=jdata["list"][0]["rain"]
 			Pressure=jdata["list"][0]["clouds"]
-			i=('In ' + str(Main) + ' hat es ' + str(Temp) + 'Grad, bei ' + str(Pressure) + ' bar und ' + str(Wind))
+			i=('There\'s ' + str(Weather) + ' with a windspeed of ' + str(Speed) + 'km/h from ' + str(Angle) + '°N.')
 			print('Wetter')
 		slack_client.api_call("chat.postMessage", channel=channel, text=i, as_user=True)
 	if command.startswith(CLOCK):
