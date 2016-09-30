@@ -10,7 +10,7 @@ from slackclient import SlackClient
 
 BOT_NAME= 'servitor'
 
-SLACK_BOT_TOKEN = 'xoxb-84060539537-L948qpYUX7oViAU6otzhnNmr'
+SLACK_BOT_TOKEN = 'xoxb-84060539537-XXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 
 #instanziiere Slack
