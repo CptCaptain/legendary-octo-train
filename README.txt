@@ -7,3 +7,5 @@ If the string contains any of these commands after the callsign,
 it will execute.
 For 'wetter', it will output the weather for every word in the string, except for wetter
 
+HaikuScript is a simple python script which takes the top 150 posts of /r/youtubehaiku of the month, 
+and creates a youtube playlist for them.
